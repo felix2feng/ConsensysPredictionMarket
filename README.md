@@ -5,3 +5,8 @@
 - Use outside libraries like SafeMath
 - Write unit tests using 2017 async/await features
 - Implement Hub / Spoke model with prediction market
+
+### To get started
+``` npm install```
+``` truffle compile ```
+``` truffle migrate ```
