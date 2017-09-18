@@ -3,7 +3,7 @@ pragma solidity ^0.4.4;
 import './Owned.sol';
 
 contract Pausable is Owned {
-  bool paused;
+  bool public paused;
 
   event LogIsPaused(bool isPaused);
 

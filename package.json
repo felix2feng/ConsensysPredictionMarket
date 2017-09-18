@@ -9,6 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ethereumjs-util": "^5.1.2",
     "zeppelin-solidity": "^1.2.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.0.0",
+    "chai": "^4.1.2"
   }
 }

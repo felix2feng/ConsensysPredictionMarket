@@ -21,7 +21,7 @@ contract PredictionMarketHub is Pausable {
   function PredictionMarketHub
   () {}
   
-  function getCampaignCount() 
+  function getMarketCount() 
     public
     constant
     returns (uint campaignCount)
