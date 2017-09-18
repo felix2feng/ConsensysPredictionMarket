@@ -1,4 +1,4 @@
-const ethUtil = require('ethereumjs-util');
+const expectThrow = require('./expectThrow');
 const assert = require('chai').assert;
 
 var PredictionMarket = artifacts.require("./PredictionMarket.sol");
@@ -12,7 +12,8 @@ contract('PredictionMarketHub', function(accounts) {
     admin = accounts[1];
     user = accounts[2];
     source = accounts[3];
-    bet = web3.toWei(10, "ether");
+    // Prefer to use smaller figures during tests
+    bet = web3.toWei(1, "ether");
   });
 
   describe('Prediction Market Hub', () => {
@@ -27,21 +28,19 @@ contract('PredictionMarketHub', function(accounts) {
       assert.equal(contractOwner, owner, 'The owner should match');
 
       let marketCount = await hubContract.getMarketCount.call();
-      assert.strictEqual(parseInt(marketCount.toString(10)), 0, 'There should no markets');      
+      assert.strictEqual(marketCount.toString(10), "0", 'There should no markets');      
     });
 
     describe('Prediction Market', () => {
-      let txnParamsAdmin, txnParamsOwner, txnReceipt, marketAddress, marketContract;
+      let txnParamsAdmin, txnParamsOwner, txnReceipt, marketAddress, marketContract, txnParamsUser;
 
       beforeEach(async () => {
         txnParamsAdmin = { from: admin };
         txnParamsOwner = { from: owner };
+        txnParamsUser = { from: user };
         txnReceipt = await hubContract.createNewPredictionMarket(txnParamsAdmin);
         marketAddress = txnReceipt.logs[0].args.predictionMarketAddress;
-        var abi = PredictionMarket.abi;
-        return web3.eth.contract(abi).at(marketAddress, function (err, _marketContract) {
-          marketContract = _marketContract;
-        });
+        marketContract = PredictionMarket.at(marketAddress);
       });
 
       it('should allow creation of a prediction market by admin', async () => {
@@ -51,7 +50,7 @@ contract('PredictionMarketHub', function(accounts) {
         assert.equal(firstLog.args.sponsor, admin, 'It should have the correct sponsor');
 
         let marketCount = await hubContract.getMarketCount.call();
-        assert.strictEqual(parseInt(marketCount.toString(10)), 1, 'There should one markets');      
+        assert.strictEqual(marketCount.toString(10), "1", 'There should one markets');      
       });
 
       it('should allow the owner to pause the contract', async () => {
@@ -65,6 +64,20 @@ contract('PredictionMarketHub', function(accounts) {
         assert.strictEqual(isPaused, true, 'It should be paused');
       });
 
+      it('should not allow the admin to pause the contract', async () => {
+        let isPaused;
+
+        isPaused = await marketContract.paused.call();
+        assert.strictEqual(isPaused, false, 'It should not be paused');
+
+        try {
+          await expectThrow(hubContract.pauseMarket(marketAddress, txnParamsAdmin));
+          assert.fail('should have thrown before');
+        } catch(error) {
+          assert.isAbove(error.message.search('invalid opcode'), -1, 'Invalid opcode error must be returned');
+        }
+      });
+
       it('should allow the admin to pose a question', async () => {
         var questionHash = '0xb9c76901de78e2669152447667f9ca1c19c72755';
         let txnObject = await marketContract.poseQuestion(questionHash, source, txnParamsAdmin);
@@ -75,6 +88,15 @@ contract('PredictionMarketHub', function(accounts) {
         assert.strictEqual(source, contractTrustedSource.slice(0,42), 'The sources should match');
       });
 
+      it('should not allow a user to pose a question', async () => {
+        var questionHash = '0xb9c76901de78e2669152447667f9ca1c19c72755';
+        try {
+          await marketContract.poseQuestion(questionHash, source, txnParamsUser);
+          assert.fail('should have thrown before');
+        } catch(error) {
+          assert.isAbove(error.message.search('invalid opcode'), -1, 'Invalid opcode error must be returned');
+        }
+      });
     });
   });
 });

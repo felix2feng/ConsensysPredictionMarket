@@ -97,11 +97,12 @@ contract PredictionMarket is Pausable {
 		public
 		returns (bool success)
 	{
+		// The sender must be the trusted source
+		// NOTE: Put this first so that spammers are stopped earlier
+		require(msg.sender == trustedSource);
+
 		// There needs to be a question posed
 		require(questionHash != 0);
-
-		// The sender must be the trusted source
-		require(msg.sender == trustedSource);
 
 		// The question must not been answered yet
 		require(hasBeenAnsweredBySource == false);
@@ -123,7 +124,10 @@ contract PredictionMarket is Pausable {
 		require(hasBeenAnsweredBySource == true);
 		
 		// The withdrawer must have made the correct bet
-		require(bets[msg.sender].bet == answer);		
+		require(bets[msg.sender].bet == answer);
+
+		// The amount bet must not be 0 NOTE: This would harden the codde
+		require(bets[msg.sender].amount != 0);
 		
 		uint betAmount = bets[msg.sender].amount;
 		uint amountWithdrawn = bets[msg.sender].amountWithdrawn;

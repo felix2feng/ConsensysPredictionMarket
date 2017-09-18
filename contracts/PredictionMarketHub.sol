@@ -9,7 +9,7 @@ contract PredictionMarketHub is Pausable {
   mapping(address => bool) public predictionMarketExists;
   
   modifier marketExists(address marketAddress) {
-      require(predictionMarketExists[marketAddress] == true);
+      require(predictionMarketExists[marketAddress]);
       _;
   }
 
@@ -36,7 +36,7 @@ contract PredictionMarketHub is Pausable {
     // Learning - contract types are immediately converted to address
     PredictionMarket newMarket = new PredictionMarket(msg.sender);
 
-    require(predictionMarketExists[newMarket] == false);
+    assert(predictionMarketExists[newMarket] == false);
     predictionMarkets.push(newMarket);
 
     predictionMarketExists[newMarket] = true;

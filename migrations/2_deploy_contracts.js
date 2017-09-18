@@ -1,5 +1,5 @@
-var PredictionMarket = artifacts.require("./PredictionMarket.sol");
+var PredictionMarketHub = artifacts.require("./PredictionMarketHub.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(PredictionMarket);
+  deployer.deploy(PredictionMarketHub);
 };
